@@ -4,34 +4,29 @@ import axios from "axios";
 function App() {
   const [catFact, setCatFact] = useState("");
   const [catImage, setCatImage] = useState("");
-  const [isFactVisible, setIsFactVisible] = useState(false);
-  const [isImageVisible, setIsImageVisible] = useState(false);
+  const [isContentVisible, setIsContentVisible] = useState(false);
 
-  const fetchCatFact = async () => {
+  const fetchCatData = async () => {
     try {
-      const response = await axios.get("https://catfact.ninja/fact");
-      setCatFact(response.data.fact);
-      setIsFactVisible(true);
-    } catch (error) {
-      console.error("Error fetching cat fact:", error);
-    }
-  };
+      const [factResponse, imageResponse] = await Promise.all([
+        axios.get("https://catfact.ninja/fact"),
+        axios.get("https://api.thecatapi.com/v1/images/search?limit=1"),
+      ]);
 
-  const fetchCatImage = async () => {
-    try {
-      const response = await axios.get(
-        "https://api.thecatapi.com/v1/images/search?limit=1"
-      );
-      setCatImage(response.data[0].url);
-      setIsImageVisible(true);
+      setCatFact(factResponse.data.fact);
+      setCatImage(imageResponse.data[0].url);
+      // Introduce a delay before making content visible
+      setTimeout(() => {
+        setIsContentVisible(true);
+      }, 1000); // 1 second delay
     } catch (error) {
-      console.error("Error fetching cat image:", error);
+      console.error("Error fetching cat data:", error);
     }
   };
 
   const handleClick = () => {
-    fetchCatFact();
-    fetchCatImage();
+    setIsContentVisible(false); // Hide content while fetching new data
+    fetchCatData();
   };
 
   return (
@@ -40,7 +35,7 @@ function App() {
       <div className="flex flex-row space-x-8">
         <div
           className={`bg-white rounded-lg shadow-lg p-6 flex-1 transition-all duration-500 h-[50vh] aspect-square ${
-            isFactVisible
+            isContentVisible
               ? "opacity-100 transform translate-y-0"
               : "opacity-0 transform -translate-y-4"
           }`}
@@ -49,8 +44,8 @@ function App() {
           <p className="text-gray-700">{catFact}</p>
         </div>
         <div
-          className={`bg-white rounded-lg shadow-lg p-6 flex-1 transition-all duration-500 h-[50vh] aspect-square   ${
-            isImageVisible
+          className={`bg-white rounded-lg shadow-lg p-6 flex-1 transition-all duration-500 h-[50vh] aspect-square ${
+            isContentVisible
               ? "opacity-100 transform translate-y-0"
               : "opacity-0 transform -translate-y-4"
           }`}
